@@ -17,20 +17,22 @@ st.write("✅ ID Loaded:", "HMRC_CLIENT_ID" in st.secrets)
 st.write("✅ Secret Loaded:", "HMRC_CLIENT_SECRET" in st.secrets)
 
 def get_access_token(client_id, client_secret):
+    # Create credentials string
     auth_str = f"{client_id}:{client_secret}"
-    encoded_auth = base64.b64encode(auth_str.encode()).decode()
+    
+    # Encode to Base64 using UTF-8 explicitly
+    encoded_auth = base64.b64encode(auth_str.encode("utf-8")).decode("utf-8")
 
     headers = {
         "Authorization": f"Basic {encoded_auth}",
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         "Accept": "application/json"
     }
 
-    data = {
-        "grant_type": "client_credentials",
-        "scope": "hello"
-    }
+    # HMRC requires scope parameter *only if* using scope RESTRICTION
+    data = {"grant_type": "client_credentials"}
 
+    return requests.post(TOKEN_URL, headers=headers, data=data)
     return requests.post(TOKEN_URL, headers=headers, data=data)
 
 
