@@ -16,6 +16,7 @@ client_secret = st.secrets["HMRC_CLIENT_SECRET"]
 st.write("✅ Secrets Loaded ✔")
 
 def get_access_token(client_id, client_secret):
+    # Create Basic Auth header
     auth_str = f"{client_id}:{client_secret}"
     encoded_auth = base64.b64encode(auth_str.encode("utf-8")).decode("utf-8")
 
@@ -25,10 +26,11 @@ def get_access_token(client_id, client_secret):
         "Accept": "application/json"
     }
 
-    # ✅ HMRC Sandbox requires sending client_id again in the body
+    # ✅ FINAL FIX: HMRC sandbox requires BOTH id & secret in POST body
     data = {
         "grant_type": "client_credentials",
-        "client_id": client_id
+        "client_id": client_id,
+        "client_secret": client_secret
     }
 
     return requests.post(TOKEN_URL, headers=headers, data=data), encoded_auth
@@ -36,7 +38,9 @@ def get_access_token(client_id, client_secret):
 
 if st.button("Request Access Token ✅"):
     token_response, encoded_auth = get_access_token(client_id, client_secret)
-    st.write("🔐 Encoded Auth:", encoded_auth[:12] + "... (hidden)")
+
+    # Debugging display (safe)
+    st.write("🔐 Encoded Auth Header (partial):", encoded_auth[:10] + "... (hidden)")
 
     if token_response.status_code == 200:
         token_data = token_response.json()
@@ -49,10 +53,11 @@ if st.button("Request Access Token ✅"):
                 "Authorization": f"Bearer {access_token}",
                 "Accept": "application/vnd.hmrc.1.0+json"
             }
+
             api_response = requests.get(HELLO_APP_URL, headers=headers)
 
             if api_response.status_code == 200:
-                st.success("✅ Hello Application Success!")
+                st.success("✅ HMRC API call succeeded!")
                 st.json(api_response.json())
             else:
                 st.error(f"❌ API Error: {api_response.status_code}")
