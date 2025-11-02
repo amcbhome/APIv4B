@@ -13,15 +13,10 @@ HELLO_APP_URL = "https://test-api.service.hmrc.gov.uk/hello/application"
 client_id = st.secrets["HMRC_CLIENT_ID"]
 client_secret = st.secrets["HMRC_CLIENT_SECRET"]
 
-# ✅ Check secrets loaded
-st.write("✅ ID Loaded:", "HMRC_CLIENT_ID" in st.secrets)
-st.write("✅ Secret Loaded:", "HMRC_CLIENT_SECRET" in st.secrets)
-
+st.write("✅ Secrets Loaded ✔")
 
 def get_access_token(client_id, client_secret):
     auth_str = f"{client_id}:{client_secret}"
-    
-    # ✅ Strong explicit Base64 Encoding
     encoded_auth = base64.b64encode(auth_str.encode("utf-8")).decode("utf-8")
 
     headers = {
@@ -30,16 +25,18 @@ def get_access_token(client_id, client_secret):
         "Accept": "application/json"
     }
 
-    data = {"grant_type": "client_credentials"}
+    # ✅ HMRC Sandbox requires sending client_id again in the body
+    data = {
+        "grant_type": "client_credentials",
+        "client_id": client_id
+    }
 
     return requests.post(TOKEN_URL, headers=headers, data=data), encoded_auth
 
 
-if st.button("Request Access Token"):
+if st.button("Request Access Token ✅"):
     token_response, encoded_auth = get_access_token(client_id, client_secret)
-
-    # ✅ Debug header fragment to help diagnose 400 errors safely
-    st.write("🔐 Encoded Auth:", encoded_auth[:10] + "... (hidden)")
+    st.write("🔐 Encoded Auth:", encoded_auth[:12] + "... (hidden)")
 
     if token_response.status_code == 200:
         token_data = token_response.json()
@@ -47,16 +44,15 @@ if st.button("Request Access Token"):
         st.success("✅ Token Retrieved Successfully!")
         st.json(token_data)
 
-        if st.button("Call Hello Application API"):
+        if st.button("Call Hello Application API 🟢"):
             headers = {
                 "Authorization": f"Bearer {access_token}",
                 "Accept": "application/vnd.hmrc.1.0+json"
             }
-
             api_response = requests.get(HELLO_APP_URL, headers=headers)
 
             if api_response.status_code == 200:
-                st.success("✅ API Call Successful!")
+                st.success("✅ Hello Application Success!")
                 st.json(api_response.json())
             else:
                 st.error(f"❌ API Error: {api_response.status_code}")
