@@ -13,6 +13,9 @@ HELLO_APP_URL = "https://test-api.service.hmrc.gov.uk/hello/application"
 client_id = st.secrets["HMRC_CLIENT_ID"]
 client_secret = st.secrets["HMRC_CLIENT_SECRET"]
 
+st.write("✅ ID Loaded:", "HMRC_CLIENT_ID" in st.secrets)
+st.write("✅ Secret Loaded:", "HMRC_CLIENT_SECRET" in st.secrets)
+
 def get_access_token(client_id, client_secret):
     auth_str = f"{client_id}:{client_secret}"
     encoded_auth = base64.b64encode(auth_str.encode()).decode()
